@@ -104,3 +104,27 @@ The `3950X_16CPU` stands for my PC with 3950X Ryzen CPU with 16 cores.
 Here is a graph for matching 5v5 and 1v1 tickets using my PC with 16 cores:
 
  <img src="https://cryshana.me/f/bRVKRYyIBsC5.png" style="max-width: 100%;max-width:700px;"></img>
+
+## Testing
+The `CryMatchTests` project contains all relevant tests for the system. It's a bit rough but it tests all it needs to.
+
+In order to run the tests you will need to set up an accessible Redis instance on `localhost`. On Windows I used the Linux Subsystem to set up Redis. Should be set up without any password on default port. 
+
+The tests will automatically try to connect to `localhost` with default Redis port as is defined in `StateFixture.cs` file. If you have your Redis instance elsewhere, you can always adjust the Redis connection string in this file.
+
+## Possible features/improvements (TODO)
+These are possible features/improvements that I may or may not do in the future:
+
+- **Dynamic ticket gather time** (HIGH PRIORITY) that adjusts based on traffic. This should make the system react better to low traffic scenarios which are common with smaller games and lengthen the gathering time to gather more quality tickets.
+- **Improve cleaner of submitted set** (MEDIUM PRIORITY). At the moment the submitted set can contain orphan tickets in cases when state is modified externally or system is reset, etc... We want to ensure proper state at all times.
+- **Overhaul of expiry system** (MEDIUM PRIORITY). In-memory state currently uses tasks for expiring entries which may be wasting system resources when system is really busy and a lot of tasks are spawned. Could instead handle this differently, more similar to how Redis handles it - by setting an expiry date and just checking it lazily and at an interval. Because there can be a large number of keys, only a portion of them is checked randomly and depending on how many of them were expired, this is repeated.
+- **Web Interface** (MEDIUM PRIORITY) for easy overview of system status and possibly real-time configuration changing
+- **Adding more extensible functionality via native libraries** (MEDIUM PRIORITY). Right now the native library extensebility is quite limited. It has the main stuff but more functionality would be wanted, which would offer more flexibility without having to touch the source code itself.
+- **Option for multiple matching functions to handle the same ticket pool** (LOW PRIORITY). This behaviour is similar to how OpenMatch works. The problem with this approach is that there will be synchronization issues and many duplicates that have to be removed. OpenMatch uses Evaluator for this. But while it sounds great, it will actually slow down the matching process significantly for smaller ticket pools + it is overkill for even large ticket pools. This would be useful for  niche use cases where people are expecting to match more than 100 000 tickets at once at a reasonable time. (to my knowledge no game on the market needs to match this many people in the same ticket pool)
+- **Option to minimize affinity differences across matches** (LOW PRIORITY). At the moment tickets are matched in receiving order. In case we have 4 tickets with skill ratings of 500,1000,1000,2000 -- they are matched like so: (1000,1000) and (500,2000) based on processing order - when it would be more optimal to do (500,1000) and (1000,2000) to minimize skill differences. So instead of 1 good and 1 bad matchup, we could have 2 okayish matchups instead. This depends on your preferences and sometimes it is not desired. Also this can be mitigated by using a HARD LIMIT on affinities. ALSO this problem is minimal for larger number of tickets and only noticable with really small amount of matches. This is why it's low priority.
+- **General improvements of ticket handling** (LOW PRIORITY). I don't know if this is necessary at this point, but I feel like I can further make ticket handling more efficient without compromising system integrity. This is more or less an ongoing process
+
+- **MORE TESTS for system failures!!!** Currently I do not test system failures enough, such as:
+    - Redis failing at different stages of processing
+    - matchmaker failing at different stages of processing
+
