@@ -1,0 +1,88 @@
+﻿syntax = "proto3";
+package CryMatch;
+
+option csharp_namespace = "CryMatchGrpc";
+
+message Ticket {
+    // State ID, assigned by the state service for internal tracking of the ticket.
+    // Depending on service these can be easily guessable, so keep them hidden from clients.
+    // (NOTE: This ID can change when ticket is moved within the state)
+	string state_id = 1;
+
+    // Global ID, assigned by Director. Has to uniquely identify a ticket.
+    // This ID should not change once assigned.
+    string global_id = 2;
+
+    // exact timestamp of creation, set by the director
+    int64 timestamp = 3;
+
+    // MAX AGE = max amount of seconds this ticket can be in matchmaking
+    // process before it is expired
+    uint32 max_age_seconds = 4;
+
+    // matchmaking pool id (separate games should use spearate pools)
+    optional string matchmaking_pool_id = 5;
+
+    // STATE = Contains state data used by requirements
+    repeated FloatArray state = 6;
+
+    // REQUIREMENTS = players must have certain things in common to match 
+    // (keys are indexes in state array, to avoid dictionary access)
+    // ALL requirements must be true for other ticket to be a viable candidate
+	repeated MatchmakingRequirements requirements = 7;
+
+    // AFFINITIES = players have certain affinities. (like skill rating, reputation score, ...)
+    // By using these values, we can match similar players with other similar players. Or even
+    // opposite, by preferring to match disimilar players. (Affinities are compared index to index)
+    repeated MatchmakingAffinity affinities = 8;
+
+    // PRIORITY = Players with higher priority are prioritized when matching
+    // (base priority value for a player)
+    int32 priority_base = 9;
+
+    // AGE PRIORITY FACTOR = when matching tickets, eldest ticket is assigned age priority
+    // of (1 * FACTOR) and youngest (0 * FACTOR) and then everything in-between
+    float age_priority_factor = 10;
+
+    // timestamp when ticket expires in matchmaker local time
+    // this is set upon assignment to matchmaker by director
+    int64 timestamp_expiry_matchmaker = 11;
+
+    // counter that tracks matching failure attempts - used by matchmaker
+    // to avoid keeping unmatchable tickets in-memory forever
+    uint32 matching_failure_count = 12;
+}
+
+message MatchmakingRequirements {
+    // at least ONE of these must match
+    repeated Requirement any = 1;
+}
+
+message Requirement {
+    int32 key = 1;
+    bool ranged = 2;
+    repeated float values = 3;
+}
+
+message MatchmakingAffinity {
+    float value = 1;
+    float max_margin = 2;
+    bool prefer_disimilar = 3;
+
+    // if soft, even if another player is outside max_range, will still be accepted, but with 0 added priority
+    bool soft_margin = 4;
+
+    // by default should be 1, this will multiply the end-calculated affinity added-priority
+    // (we can add more weight to certain affinities then)
+    float priority_factor = 5;
+    
+}
+
+// -------------------------------------
+// COMMON
+// -------------------------------------
+message FloatArray {
+    repeated float values = 1;
+}
+
+message Empty {}

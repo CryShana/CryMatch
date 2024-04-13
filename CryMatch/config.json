@@ -1,0 +1,9 @@
+{
+  "ListenEndpoint": "0.0.0.0:5000",
+  "CertificatePath": "",
+  "PrivateKeyPath": "",
+  "Mode": "Standalone",
+  "MatchmakerThreads": 2,
+  "UseRedis": true,
+  "RedisConfigurationOptions": "localhost:6379,name=CryMatch,password=123"
+}

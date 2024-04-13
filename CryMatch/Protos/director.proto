@@ -1,0 +1,46 @@
+﻿syntax = "proto3";
+package CryMatch;
+
+option csharp_namespace = "CryMatchGrpc";
+
+import "ticket.proto";
+
+service Director {
+	rpc TicketSubmit (Ticket) returns (DirectorResponse);
+	rpc TicketRemove (Ticket) returns (DirectorResponse);
+	rpc GetTicketMatches (Empty) returns (stream TicketMatch);
+	rpc GetPoolConfiguration (PoolId) returns (PoolConfiguration);
+	rpc SetPoolConfiguration (PoolConfiguration) returns (DirectorResponse);
+}
+
+enum TicketStatus {
+	UNSPECIFIED = 0;
+	UNKNOWN_ERROR = 1;
+	// all successful requests should return the OK code
+	OK = 2;
+	BAD_REQUEST = 3;
+	DUPLICATE_ID = 4;
+	MATCHMAKER_BUSY = 5;
+	EXPIRED = 6;
+	NOT_FOUND = 7;
+	INTERNAL_ERROR = 8;
+}
+
+message DirectorResponse {
+	TicketStatus status = 1;
+}
+
+message TicketMatch {
+	string state_id = 1;
+	string global_id = 2;
+	repeated string matched_ticket_global_ids = 3;
+}
+
+message PoolConfiguration {
+	string pool_id = 1;
+	int32 match_size = 2;
+}
+
+message PoolId {
+	string id = 1;
+}

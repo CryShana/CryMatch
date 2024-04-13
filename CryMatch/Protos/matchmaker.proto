@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+package CryMatch;
+
+option csharp_namespace = "CryMatchGrpc";
+
+import "ticket.proto";
+
+service Matchmaker {
+	//rpc SayHello (CommonMessage) returns (CommonMessage);
+}
